@@ -4,7 +4,9 @@ website ketan susu website ini akan digunakan untuk mempermudah calon pelanggan 
 berapa harga nya bisa di tambah topping apa saja dan juga bisa digunakan menjadi alat sarana dan prasarana untuk
 memberikan kritik saran usulan dan komentar
 
-[tampilan]("./page.png")
+## 📸 Screenshot
+
+![tampilan]("page.png")
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with
 [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
