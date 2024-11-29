@@ -6,7 +6,7 @@ memberikan kritik saran usulan dan komentar
 
 ## 📸 Screenshot
 
-![tampilan]("/page.png")
+![tampilan](page.png)
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with
 [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
