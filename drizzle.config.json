@@ -1,0 +1,8 @@
+{
+  "out": "./src/db/drizzle",
+  "schema": "./src/db/schema.ts",
+  "dialect": "postgresql",
+  "dbCredentials": {
+    "url": "postgresql://magicSearch_owner:a5dYpPijAhG1@ep-holy-poetry-a1b06c65.ap-southeast-1.aws.neon.tech/magicSearch?sslmode=require"
+  }
+}
