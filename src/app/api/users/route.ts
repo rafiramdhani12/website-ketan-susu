@@ -6,48 +6,43 @@ import { InferSelectModel } from 'drizzle-orm';
 
 type User = InferSelectModel<typeof usersTable>;
 
+// Headers CORS
+const corsHeaders = {
+	'Access-Control-Allow-Origin': '*', // Sesuaikan dengan domain Anda
+	'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+	'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
 export async function GET() {
 	try {
-		console.log('Attempting to fetch users from database');
-
-		// Periksa koneksi database lebih detail
-		if (!db) {
-			console.error('Database connection is not established');
-			return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
-		}
-
-		// Gunakan tipe eksplisit untuk users
+		// Tambahkan headers CORS ke respons
 		const users: User[] = await db.select().from(usersTable);
 
-		// Log detail hasil query
-		console.log('Query result:', {
-			type: typeof users,
-			isArray: Array.isArray(users),
-			length: users.length,
-			firstItem: users[0],
+		return NextResponse.json(users, {
+			status: 200,
+			headers: corsHeaders,
 		});
-
-		// Kembalikan array users
-		return NextResponse.json(users, { status: 200 });
 	} catch (error: unknown) {
-		// Logging error yang komprehensif
-		console.error('FULL ERROR DETAILS:', {
-			errorType: typeof error,
-			errorName: error instanceof Error ? error.name : 'Unknown Error',
-			errorMessage: error instanceof Error ? error.message : String(error),
-			errorStack: error instanceof Error ? error.stack : 'No stack trace',
-		});
-
-		// Kirim respons error informatif
 		return NextResponse.json(
 			{
 				error: 'Unable to fetch users',
 				details: error instanceof Error ? error.message : String(error),
 				type: typeof error,
 			},
-			{ status: 500 }
+			{
+				status: 500,
+				headers: corsHeaders,
+			}
 		);
 	}
+}
+
+// Tambahkan handler OPTIONS untuk preflight request
+export async function OPTIONS() {
+	return new NextResponse(null, {
+		status: 200,
+		headers: corsHeaders,
+	});
 }
 export async function POST(request: Request) {
 	try {
