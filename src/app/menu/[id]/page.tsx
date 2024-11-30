@@ -1,20 +1,16 @@
 'use client';
+
 import dataMenu from '@/app/data/dataMenu';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import React, { useRef, useState } from 'react';
 
-interface Props {
-	params: {
-		id: number;
-	};
-}
-
-const DetailMenu: React.FC<Props> = () => {
+const DetailMenu: React.FC = () => {
 	const dialogRef = useRef<HTMLDialogElement | null>(null);
 	const { id } = useParams();
 	const menuItem = dataMenu.find((item) => item.id === Number(id));
+
 	const toppingPrice: Record<string, number> = {
 		keju: 2,
 		matcha: 2,
@@ -28,52 +24,55 @@ const DetailMenu: React.FC<Props> = () => {
 	const [message, setMessage] = useState<string>('');
 	const [address, setAddress] = useState<string>('');
 
-	// ! hitung harga total
+	// Fungsi hitung harga total
 	const hitungHarga = () => {
 		let total = menuItem?.harga ?? 0;
-		Array.from(topping).forEach((topping) => {
-			total += toppingPrice[topping];
+		topping.forEach((toppingName) => {
+			total += toppingPrice[toppingName];
 		});
 		return total;
 	};
 
-	const handleCheckbox = (topping: keyof typeof toppingPrice) => {
+	// Fungsi toggle checkbox
+	const handleCheckbox = (selectedTopping: keyof typeof toppingPrice) => {
 		setTopping((prev) => {
 			const newSelected = new Set(prev);
-			if (newSelected.has(topping)) {
-				newSelected.delete(topping);
+			if (newSelected.has(selectedTopping)) {
+				newSelected.delete(selectedTopping);
 			} else {
-				newSelected.add(topping);
+				newSelected.add(selectedTopping);
 			}
 			return newSelected;
 		});
 	};
 
-	if (!menuItem) {
-		return <p>menu tidak ditemukan</p>;
-	}
-
+	// Fungsi handle pembayaran
 	const handlePayment = () => {
-		const waNum = '+6285814531271';
+		if (!menuItem) return;
 
-		const selectedTopping = Array.from(topping)
-			.map((topping) => topping)
-			.join(',');
+		const waNum = '+6285814531271';
+		const selectedTopping = Array.from(topping).join(', ');
 
 		const encodeMessage = encodeURIComponent(
-			`Menu makanan yang kamu beli: ${
-				menuItem.nama
-			}\nHarga: Rp ${hitungHarga()}K\nNama pembeli: ${buyerName}\nPesan: ${message}\nAlamat: ${address}\n topping yg ditambahkan ${selectedTopping}`
+			`Menu makanan yang kamu beli: ${menuItem.nama}\n` +
+				`Harga: Rp ${hitungHarga()}K\n` +
+				`Nama pembeli: ${buyerName}\n` +
+				`Pesan: ${message}\n` +
+				`Alamat: ${address}\n` +
+				`Topping yang ditambahkan: ${selectedTopping}`
 		);
 
-		const whatssapLink = `https://wa.me/${waNum}?text=${encodeMessage}`;
-
-		window.open(whatssapLink, '_blank');
+		const whatsappLink = `https://wa.me/${waNum}?text=${encodeMessage}`;
+		window.open(whatsappLink, '_blank');
 	};
 
 	const openModal = () => {
 		dialogRef.current?.showModal();
 	};
+
+	if (!menuItem) {
+		return <p>Menu tidak ditemukan</p>;
+	}
 
 	return (
 		<>
@@ -81,7 +80,7 @@ const DetailMenu: React.FC<Props> = () => {
 				<div className='max-w-7xl mx-auto'>
 					<div className='bg-white rounded-2xl shadow-xl overflow-hidden'>
 						<div className='flex flex-col md:flex-row'>
-							{/* Image Section - Full width on mobile, left side on desktop */}
+							{/* Image Section */}
 							<div className='md:w-1/3'>
 								<div className='relative h-auto md:h-[300px] lg:h-full'>
 									<Image
@@ -94,7 +93,7 @@ const DetailMenu: React.FC<Props> = () => {
 								</div>
 							</div>
 
-							{/* Content Section - Stacked on mobile, right side on desktop */}
+							{/* Content Section */}
 							<div className='md:w-1/2 p-6 md:p-8 flex flex-col md:ms-60'>
 								<div className='flex-grow'>
 									<h1 className='text-3xl font-bold text-gray-900 mb-4'>{menuItem.nama}</h1>
@@ -104,7 +103,6 @@ const DetailMenu: React.FC<Props> = () => {
 									</div>
 								</div>
 
-								{/* Buttons - Always at bottom of content section */}
 								<div className='flex justify-end items-center gap-4'>
 									<Link href='/menu'>
 										<button className='px-6 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors text-gray-700 font-medium'>
@@ -121,11 +119,11 @@ const DetailMenu: React.FC<Props> = () => {
 						</div>
 					</div>
 
-					{/* Modal - Centered on all screens */}
+					{/* Modal */}
 					<dialog ref={dialogRef} id='my-modal' className='modal'>
 						<div className='modal-box max-w-md bg-white rounded-2xl p-6'>
 							<h3 className='text-2xl font-bold text-gray-900 mb-4'>Menu makanan yang kamu beli: {menuItem.nama}</h3>
-							<p className='text-lg text-gray-600 mb-6'>Harga: Rp {menuItem.harga}K</p>
+							<p className='text-lg text-gray-600 mb-6'>Harga: Rp {hitungHarga()}K</p>
 
 							<div className='space-y-4'>
 								<input
@@ -150,11 +148,11 @@ const DetailMenu: React.FC<Props> = () => {
 									className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all'
 								/>
 								<details className='dropdown'>
-									<summary className='btn m-1'>pilih topping tambahan</summary>
+									<summary className='btn m-1'>Pilih topping tambahan</summary>
 									<ul className='menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow'>
 										{Object.keys(toppingPrice).map((toppingName) => (
 											<div className='flex justify-between mt-3' key={toppingName}>
-												{toppingName} : {toppingPrice[toppingName]}k
+												{toppingName}: {toppingPrice[toppingName]}k
 												<input
 													type='checkbox'
 													className='checkbox'
