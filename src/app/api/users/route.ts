@@ -5,17 +5,46 @@ import db from '@/db';
 
 export async function GET() {
 	try {
-		const users = await db.select().from(usersTable);
-		return NextResponse.json(users);
-	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : String(error);
+		// Tambahkan logging yang komprehensif
+		console.log('Attempting to fetch users from database');
 
-		console.error('Error fetching users', errorMessage);
+		// Periksa koneksi database
+		if (!db) {
+			console.error('Database connection is not established');
+			return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+		}
 
+		// Tambahkan timeout atau error handling tambahan
+		const users = await Promise.race([
+			db.select().from(usersTable),
+			new Promise((_, reject) => setTimeout(() => reject(new Error('Database query timeout')), 5000)),
+		]);
+
+		// Log detail hasil query
+		console.log('Query result:', {
+			type: typeof users,
+			isArray: Array.isArray(users),
+			length: users.length,
+			firstItem: users[0],
+		});
+
+		// Pastikan mengembalikan array
+		return NextResponse.json(Array.isArray(users) ? users : [users], { status: 200 });
+	} catch (error: unknown) {
+		// Logging error yang sangat detail
+		console.error('FULL ERROR DETAILS:', {
+			errorType: typeof error,
+			errorName: error instanceof Error ? error.name : 'Unknown Error',
+			errorMessage: error instanceof Error ? error.message : String(error),
+			errorStack: error instanceof Error ? error.stack : 'No stack trace',
+		});
+
+		// Kirim respons error yang informatif
 		return NextResponse.json(
 			{
 				error: 'Unable to fetch users',
-				details: errorMessage,
+				details: error instanceof Error ? error.message : String(error),
+				type: typeof error,
 			},
 			{ status: 500 }
 		);
