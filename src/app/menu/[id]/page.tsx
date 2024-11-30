@@ -15,10 +15,39 @@ const DetailMenu: React.FC<Props> = () => {
 	const dialogRef = useRef<HTMLDialogElement | null>(null);
 	const { id } = useParams();
 	const menuItem = dataMenu.find((item) => item.id === Number(id));
+	const toppingPrice: Record<string, number> = {
+		keju: 2,
+		matcha: 2,
+		choco: 2,
+		milo: 2,
+		oreo: 2,
+	};
 
+	const [topping, setTopping] = useState<Set<keyof typeof toppingPrice>>(new Set());
 	const [buyerName, setBuyerName] = useState<string>('');
 	const [message, setMessage] = useState<string>('');
 	const [address, setAddress] = useState<string>('');
+
+	// ! hitung harga total
+	const hitungHarga = () => {
+		let total = menuItem?.harga ?? 0;
+		Array.from(topping).forEach((topping) => {
+			total += toppingPrice[topping];
+		});
+		return total;
+	};
+
+	const handleCheckbox = (topping: keyof typeof toppingPrice) => {
+		setTopping((prev) => {
+			const newSelected = new Set(prev);
+			if (newSelected.has(topping)) {
+				newSelected.delete(topping);
+			} else {
+				newSelected.add(topping);
+			}
+			return newSelected;
+		});
+	};
 
 	if (!menuItem) {
 		return <p>menu tidak ditemukan</p>;
@@ -26,9 +55,17 @@ const DetailMenu: React.FC<Props> = () => {
 
 	const handlePayment = () => {
 		const waNum = '+6285814531271';
+
+		const selectedTopping = Array.from(topping)
+			.map((topping) => topping)
+			.join(',');
+
 		const encodeMessage = encodeURIComponent(
-			`Menu makanan yang kamu beli: ${menuItem.nama}\nHarga: Rp ${menuItem.harga}K\nNama pembeli: ${buyerName}\nPesan: ${message}\nAlamat: ${address}`
+			`Menu makanan yang kamu beli: ${
+				menuItem.nama
+			}\nHarga: Rp ${hitungHarga()}K\nNama pembeli: ${buyerName}\nPesan: ${message}\nAlamat: ${address}\n topping yg ditambahkan ${selectedTopping}`
 		);
+
 		const whatssapLink = `https://wa.me/${waNum}?text=${encodeMessage}`;
 
 		window.open(whatssapLink, '_blank');
@@ -112,6 +149,22 @@ const DetailMenu: React.FC<Props> = () => {
 									onChange={(e) => setAddress(e.target.value)}
 									className='w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all'
 								/>
+								<details className='dropdown'>
+									<summary className='btn m-1'>pilih topping tambahan</summary>
+									<ul className='menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow'>
+										{Object.keys(toppingPrice).map((toppingName) => (
+											<div className='flex justify-between mt-3' key={toppingName}>
+												{toppingName} : {toppingPrice[toppingName]}k
+												<input
+													type='checkbox'
+													className='checkbox'
+													checked={topping.has(toppingName as keyof typeof toppingPrice)}
+													onChange={() => handleCheckbox(toppingName as keyof typeof toppingPrice)}
+												/>
+											</div>
+										))}
+									</ul>
+								</details>
 							</div>
 
 							<div className='flex justify-end gap-4 mt-6'>
