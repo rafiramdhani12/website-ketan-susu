@@ -2,23 +2,22 @@ import { NextResponse } from 'next/server';
 
 import { usersTable } from '@/db/schema';
 import db from '@/db';
+import { InferSelectModel } from 'drizzle-orm';
+
+type User = InferSelectModel<typeof usersTable>;
 
 export async function GET() {
 	try {
-		// Tambahkan logging yang komprehensif
 		console.log('Attempting to fetch users from database');
 
-		// Periksa koneksi database
+		// Periksa koneksi database lebih detail
 		if (!db) {
 			console.error('Database connection is not established');
 			return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
 		}
 
-		// Tambahkan timeout atau error handling tambahan
-		const users = await Promise.race([
-			db.select().from(usersTable),
-			new Promise((_, reject) => setTimeout(() => reject(new Error('Database query timeout')), 5000)),
-		]);
+		// Gunakan tipe eksplisit untuk users
+		const users: User[] = await db.select().from(usersTable);
 
 		// Log detail hasil query
 		console.log('Query result:', {
@@ -28,10 +27,10 @@ export async function GET() {
 			firstItem: users[0],
 		});
 
-		// Pastikan mengembalikan array
-		return NextResponse.json(Array.isArray(users) ? users : [users], { status: 200 });
+		// Kembalikan array users
+		return NextResponse.json(users, { status: 200 });
 	} catch (error: unknown) {
-		// Logging error yang sangat detail
+		// Logging error yang komprehensif
 		console.error('FULL ERROR DETAILS:', {
 			errorType: typeof error,
 			errorName: error instanceof Error ? error.name : 'Unknown Error',
@@ -39,7 +38,7 @@ export async function GET() {
 			errorStack: error instanceof Error ? error.stack : 'No stack trace',
 		});
 
-		// Kirim respons error yang informatif
+		// Kirim respons error informatif
 		return NextResponse.json(
 			{
 				error: 'Unable to fetch users',
